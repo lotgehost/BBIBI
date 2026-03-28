@@ -279,12 +279,11 @@ async function relayPost(channelId, fromId, cipher) {
   if (!res.ok) throw new Error('전송 실패');
 }
 async function relayPoll(channelId, since) {
-  const url = `${DB}/${channelId}/messages.json?orderBy="ts"&startAt=${since+1}&limitToLast=20`;
-  const res = await fetch(url);
+  const res = await fetch(`${DB}/${channelId}/messages.json?limitToLast=50`);
   if (!res.ok) return [];
   const data = await res.json();
   if (!data) return [];
-  return Object.values(data).sort((a,b)=>a.ts-b.ts);
+  return Object.values(data).filter(m=>m.ts>since).sort((a,b)=>a.ts-b.ts);
 }
 
 // ─── PET CANVAS ────────────────────────────────────────────
