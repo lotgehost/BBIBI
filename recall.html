@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RECALL</title>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:    #0a0a0a;
+  --green: #00ff88;
+  --dim:   #003322;
+  --mid:   #141414;
+  --dark:  #0d0d0d;
+  --text:  #cccccc;
+  --muted: #444;
+  --red:   #ff3355;
+}
+
+/* ── DESKTOP: center a small widget ── */
+@media (min-width: 600px) {
+  html, body {
+    width: 100%; height: 100%;
+    background: #050505;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app { width: 480px; height: 300px; flex-shrink: 0; }
+}
+
+/* ── MOBILE: full screen ── */
+@media (max-width: 599px) {
+  html, body { width: 100%; height: 100%; }
+  .app { width: 100%; height: 100svh; }
+}
+
+/* ── APP SHELL ── */
+.app {
+  background: var(--bg);
+  border: 1px solid var(--green);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── HEADER ── */
+.hdr {
+  background: var(--green);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  flex-shrink: 0;
+}
+.hdr-title {
+  color: #000;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 4px;
+}
+.hdr-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hdr-count {
+  color: #000;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.hdr-btn {
+  background: none;
+  border: none;
+  color: #000;
+  font-size: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  opacity: 0.7;
+}
+.hdr-btn:hover { opacity: 1; }
+
+/* ── DISPLAY (4/5) ── */
+.display {
+  flex: 4;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px 22px 30px;
+}
+
+/* scanlines */
+.display::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px, transparent 3px,
+    rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.display-inner {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.45s ease;
+}
+.display-inner.fading { opacity: 0; }
+
+.note-text {
+  color: var(--green);
+  font-size: 14px;
+  line-height: 1.9;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  /* clamp long notes */
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 599px) {
+  .note-text { font-size: 15px; -webkit-line-clamp: 8; }
+}
+
+.note-meta {
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  display: flex;
+  gap: 12px;
+}
+
+.empty-msg {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 2.2;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.empty-msg span { color: var(--green); }
+
+/* ── NAV ROW ── */
+.nav-row {
+  position: absolute;
+  bottom: 10px; left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+}
+.nav-arr {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.nav-arr:hover { color: var(--green); }
+.dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #222;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dot.on { background: var(--green); }
+.nav-pos {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* ── PROGRESS BAR ── */
+.pbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: #111;
+  z-index: 2;
+}
+.pbar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--green);
+  opacity: 0.5;
+}
+
+/* ── INPUT (1/5) ── */
+.input-row {
+  flex: 1;
+  background: var(--mid);
+  border-top: 1px solid #1e1e1e;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 8px;
+  min-height: 0;
+}
+.prompt {
+  color: var(--green);
+  font-size: 13px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.note-inp {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--green);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  outline: none;
+  min-width: 0;
+  caret-color: var(--green);
+}
+.note-inp::placeholder { color: #2a2a2a; }
+@media (max-width: 599px) {
+  .note-inp { font-size: 14px; }
+}
+.save-btn {
+  background: var(--green);
+  border: none;
+  color: #000;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 6px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.save-btn:hover { background: #00cc66; }
+.save-btn:active { background: #009944; }
+
+/* ── SETUP OVERLAY ── */
+.setup {
+  position: absolute; inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 28px;
+  z-index: 20;
+}
+.setup.hidden { display: none; }
+.setup-title {
+  color: var(--green);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  margin-bottom: 4px;
+}
+.setup-sub {
+  color: #333;
+  font-size: 9px;
+  text-align: center;
+  line-height: 2;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.setup-inp {
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  color: var(--green);
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  padding: 8px 10px;
+  outline: none;
+}
+.setup-inp:focus { border-color: var(--green); }
+.setup-inp::placeholder { color: #2a2a2a; }
+.setup-go {
+  width: 100%;
+  background: var(--green);
+  border: none;
+  color: #000;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 9px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+.setup-go:hover { background: #00cc66; }
+.setup-skip {
+  color: #333;
+  font-size: 9px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+.setup-skip:hover { color: #555; }
+.setup-err {
+  color: var(--red);
+  font-size: 9px;
+  letter-spacing: 1px;
+  height: 12px;
+}
+
+/* ── TOAST ── */
+#toast {
+  position: absolute;
+  bottom: 44px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--mid);
+  color: var(--green);
+  padding: 5px 14px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  border: 1px solid #222;
+  white-space: nowrap;
+  z-index: 30;
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ── SETUP OVERLAY ── -->
+  <div class="setup hidden" id="setup">
+    <div class="setup-title">RECALL</div>
+    <div class="setup-sub">
+      동기화 키를 변경하면 다른 기기에서도<br>
+      같은 키로 노트를 공유할 수 있습니다.
+    </div>
+    <input class="setup-inp" id="sKey" placeholder="동기화 키 (기본값: recall)" autocomplete="off" autocorrect="off" autocapitalize="none">
+    <div class="setup-err" id="setupErr"></div>
+    <button class="setup-go" onclick="setupDone()">적용</button>
+    <button class="setup-skip" onclick="hide('setup')">닫기</button>
+  </div>
+
+  <!-- ── HEADER ── -->
+  <div class="hdr">
+    <span class="hdr-title">RECALL</span>
+    <div class="hdr-right">
+      <span class="hdr-count" id="hdrCount">0 NOTES</span>
+      <button class="hdr-btn" onclick="openSetup()" title="설정">⚙</button>
+    </div>
+  </div>
+
+  <!-- ── DISPLAY ── -->
+  <div class="display">
+    <div class="display-inner" id="displayInner">
+      <!-- filled by JS -->
+    </div>
+    <div class="nav-row" id="navRow"></div>
+    <div class="pbar"><div class="pbar-fill" id="pbarFill"></div></div>
+  </div>
+
+  <!-- ── INPUT ── -->
+  <div class="input-row">
+    <span class="prompt">&gt;</span>
+    <input class="note-inp" id="noteInp" placeholder="인사이트 입력 (출처는 // 뒤에)">
+    <button class="save-btn" onclick="saveNote()">저장</button>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const FB_URL = 'https://bbibi-8aebd-default-rtdb.asia-southeast1.firebasedatabase.app';
+const LKEY   = 'recall_notes';
+const CKEY   = 'recall_cfg';
+const CYCLE  = 9000; // ms between note changes
+
+let notes   = [];
+let idx     = 0;
+let cfg     = null;
+let autoTmr = null;
+let pbarRAF = null;
+let pbarStart = 0;
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function init() {
+  const raw = localStorage.getItem(CKEY);
+  if (raw) {
+    cfg = JSON.parse(raw);
+  } else {
+    // Default: use shared Firebase with 'recall' key
+    cfg = { fbUrl: FB_URL, syncKey: 'recall' };
+    localStorage.setItem(CKEY, JSON.stringify(cfg));
+  }
+  hide('setup');
+  load();
+
+  document.getElementById('noteInp').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); saveNote(); }
+  });
+}
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+function setupDone() {
+  const key = document.getElementById('sKey').value.trim() || 'recall';
+  cfg = { fbUrl: FB_URL, syncKey: key };
+  localStorage.setItem(CKEY, JSON.stringify(cfg));
+  // Reset local notes to reload from new key
+  notes = [];
+  localStorage.removeItem(LKEY);
+  hide('setup');
+  load();
+}
+
+function openSetup() {
+  document.getElementById('sKey').value = cfg?.syncKey || 'recall';
+  document.getElementById('setupErr').textContent = '';
+  show('setup');
+}
+
+// ══════════════════════════════════════════
+// LOAD
+// ══════════════════════════════════════════
+async function load() {
+  const raw = localStorage.getItem(LKEY);
+  notes = raw ? JSON.parse(raw) : [];
+
+  if (cfg.fbUrl && cfg.syncKey) {
+    try {
+      const res = await fetch(`${cfg.fbUrl}/${cfg.syncKey}/notes.json`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          const fbNotes = Object.values(data);
+          const ids = new Set(notes.map(n => n.id));
+          fbNotes.forEach(n => { if (!ids.has(n.id)) notes.push(n); });
+          notes.sort((a, b) => a.ts - b.ts);
+          persist();
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Start showing a random note
+  if (notes.length > 0) {
+    idx = Math.floor(Math.random() * notes.length);
+  }
+  render();
+}
+
+// ══════════════════════════════════════════
+// SAVE
+// ══════════════════════════════════════════
+async function saveNote() {
+  const inp  = document.getElementById('noteInp');
+  const raw  = inp.value.trim();
+  if (!raw) return;
+
+  // Split on " // " for source
+  let text = raw, source = '';
+  const sep = raw.indexOf(' // ');
+  if (sep !== -1) {
+    text   = raw.slice(0, sep).trim();
+    source = raw.slice(sep + 4).trim();
+  }
+
+  const note = { id: Date.now().toString(), text, source, ts: Date.now() };
+  notes.push(note);
+  persist();
+  inp.value = '';
+
+  // Sync to Firebase
+  if (cfg.fbUrl && cfg.syncKey) {
+    try {
+      await fetch(`${cfg.fbUrl}/${cfg.syncKey}/notes/${note.id}.json`, {
+        method: 'PUT',
+        body: JSON.stringify(note)
+      });
+    } catch(e) {}
+  }
+
+  idx = notes.length - 1;
+  render();
+  toast('저장됨');
+}
+
+function persist() {
+  localStorage.setItem(LKEY, JSON.stringify(notes));
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function render() {
+  const n = notes.length;
+  document.getElementById('hdrCount').textContent = `${n} NOTE${n !== 1 ? 'S' : ''}`;
+
+  const inner = document.getElementById('displayInner');
+  const nav   = document.getElementById('navRow');
+
+  if (n === 0) {
+    inner.innerHTML = `<div class="empty-msg">
+      <span>RECALL</span><br><br>
+      아직 기록이 없습니다.<br>
+      책이나 회의에서 얻은 인사이트를<br>
+      아래 입력창에 남겨보세요.<br><br>
+      <span style="color:#222">출처 추가: 텍스트 // 출처명</span>
+    </div>`;
+    nav.innerHTML = '';
+    stopAuto();
+    return;
+  }
+
+  if (idx < 0) idx = 0;
+  if (idx >= n) idx = n - 1;
+
+  showNote();
+  renderNav(n);
+  startAuto();
+}
+
+function showNote(fade) {
+  const inner = document.getElementById('displayInner');
+  const note  = notes[idx];
+
+  const doRender = () => {
+    const src  = note.source ? `— ${note.source}` : '';
+    const date = fmtDate(note.ts);
+    inner.innerHTML = `
+      <div class="note-text">"${esc(note.text)}"</div>
+      <div class="note-meta">
+        ${src ? `<span>${esc(src)}</span>` : ''}
+        <span style="color:#2a2a2a">${date}</span>
+      </div>`;
+    inner.classList.remove('fading');
+    renderNav(notes.length);
+  };
+
+  if (fade) {
+    inner.classList.add('fading');
+    setTimeout(doRender, 450);
+  } else {
+    doRender();
+  }
+}
+
+function renderNav(n) {
+  const nav = document.getElementById('navRow');
+  const MAX_DOTS = 12;
+
+  let dotsHtml = '';
+  if (n <= MAX_DOTS) {
+    dotsHtml = Array.from({length: n}, (_, i) =>
+      `<div class="dot ${i === idx ? 'on' : ''}" onclick="jumpTo(${i})"></div>`
+    ).join('');
+  } else {
+    dotsHtml = `<span class="nav-pos">${idx + 1} / ${n}</span>`;
+  }
+
+  nav.innerHTML = `
+    <button class="nav-arr" onclick="nav(-1)">◄</button>
+    ${dotsHtml}
+    <button class="nav-arr" onclick="nav(1)">►</button>`;
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function nav(dir) {
+  const n = notes.length;
+  if (!n) return;
+  idx = ((idx + dir) + n) % n;
+  showNote(true);
+  resetAuto();
+}
+
+function jumpTo(i) {
+  idx = i;
+  showNote(true);
+  resetAuto();
+}
+
+// ══════════════════════════════════════════
+// AUTO-ADVANCE (random)
+// ══════════════════════════════════════════
+function startAuto() {
+  stopAuto();
+  if (notes.length <= 1) return;
+
+  startPbar();
+  autoTmr = setTimeout(() => {
+    let next;
+    do { next = Math.floor(Math.random() * notes.length); }
+    while (next === idx && notes.length > 1);
+    idx = next;
+    showNote(true);
+    startAuto();
+  }, CYCLE);
+}
+
+function resetAuto() { startAuto(); }
+
+function stopAuto() {
+  if (autoTmr) { clearTimeout(autoTmr); autoTmr = null; }
+  stopPbar();
+}
+
+// ── Progress bar
+function startPbar() {
+  stopPbar();
+  const fill = document.getElementById('pbarFill');
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  fill.offsetWidth; // reflow
+  fill.style.transition = `width ${CYCLE}ms linear`;
+  fill.style.width = '100%';
+}
+
+function stopPbar() {
+  const fill = document.getElementById('pbarFill');
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 1400);
+}
+
+init();
+</script>
+</body>
+</html>
