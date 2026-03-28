@@ -157,7 +157,7 @@ body {
 
 <!-- MAIN -->
 <div id="main">
-  <canvas id="pet" width="160" height="200" style="cursor:pointer"></canvas>
+  <canvas id="pet" style="cursor:pointer;display:block;"></canvas>
   <div class="hint" id="hint">· · ·</div>
 </div>
 
@@ -445,13 +445,13 @@ function startMain() {
 
   // 화면 채우도록 캔버스 크기 조정 (가로/세로 꽉 채우되 힌트 공간 확보)
   function resizeCanvas() {
-    const hintH = 40;
+    const hintH = 44;
     const vw = window.innerWidth;
     const vh = window.innerHeight - hintH;
+    // 4:5 비율 유지하며 화면 꽉 채우기
     const scale = Math.min(vw / 160, vh / 200);
-    canvas.style.width  = Math.floor(160 * scale) + 'px';
-    canvas.style.height = Math.floor(200 * scale) + 'px';
-    canvas.style.imageRendering = 'pixelated';
+    canvas.width  = Math.floor(160 * scale);
+    canvas.height = Math.floor(200 * scale);
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
