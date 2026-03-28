@@ -44,10 +44,24 @@ body {
 .s-err { color: var(--red); font-size: 10px; text-align: center; }
 
 /* ── MAIN ───────────────────────────── */
-#main { display: none; flex-direction: column; align-items: center; gap: 12px; }
+#main {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100dvh;
+  gap: 0;
+}
+
+#pet {
+  display: block;
+  /* JS로 크기 설정됨 */
+}
 
 .hint {
-  color: #333; font-size: 10px; text-align: center;
+  color: #333; font-size: 12px; text-align: center;
+  margin-top: 10px;
   letter-spacing: 1px; height: 16px;
 }
 .hint.blink { color: var(--green); animation: blink 1s infinite; }
@@ -428,6 +442,19 @@ function startMain() {
   document.getElementById('main').style.display='flex';
 
   const canvas=document.getElementById('pet');
+
+  // 화면 채우도록 캔버스 크기 조정 (가로/세로 꽉 채우되 힌트 공간 확보)
+  function resizeCanvas() {
+    const hintH = 40;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight - hintH;
+    const scale = Math.min(vw / 160, vh / 200);
+    canvas.style.width  = Math.floor(160 * scale) + 'px';
+    canvas.style.height = Math.floor(200 * scale) + 'px';
+    canvas.style.imageRendering = 'pixelated';
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
 
   // pet click
   canvas.onclick = () => {
