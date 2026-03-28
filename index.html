@@ -8,181 +8,121 @@
 <title>PET-MSG</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-:root {
-  --green: #00ff88;
-  --red:   #ff3355;
-  --bg:    #0a0a0a;
-  --mid:   #1a1a1a;
-  --dim:   #111;
-  --muted: #444;
-}
+:root { --green:#00ff88; --red:#ff3355; --bg:#0a0a0a; --mid:#1a1a1a; }
 body {
   background: var(--bg);
-  color: var(--green);
   font-family: 'Courier New', monospace;
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-/* ── SETUP ─────────────────────────── */
-#setup {
-  width: 100%;
-  max-width: 360px;
-  padding: 40px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.setup-title { font-size: 22px; font-weight: bold; letter-spacing: 3px; text-align: center; }
-.setup-sub   { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.8; }
-.setup-label { font-size: 11px; color: var(--green); }
-.setup-input {
-  width: 100%;
-  background: var(--dim);
-  border: 1px solid var(--green);
-  color: var(--green);
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  padding: 10px 12px;
-  outline: none;
-  border-radius: 0;
-}
-.setup-input::placeholder { color: var(--muted); }
-.setup-btn {
-  width: 100%;
-  background: var(--green);
-  border: none;
-  color: #000;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  font-weight: bold;
-  padding: 12px;
-  cursor: pointer;
-  letter-spacing: 2px;
-}
-.setup-error { color: var(--red); font-size: 11px; text-align: center; }
-.divider { border: none; border-top: 1px solid #222; }
-
-/* ── MAIN ──────────────────────────── */
-#main { display: none; width: 100%; max-width: 420px; flex-direction: column; height: 100dvh; }
-
-/* header */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 16px;
-  border-bottom: 1px solid #1a1a1a;
-  flex-shrink: 0;
-}
-.top-title { font-size: 13px; font-weight: bold; letter-spacing: 2px; }
-.top-status { font-size: 10px; color: var(--muted); }
-.top-reset  { font-size: 10px; color: var(--muted); cursor: pointer; padding: 4px 8px; border: 1px solid #222; }
-.top-reset:hover { color: var(--red); border-color: var(--red); }
-
-/* pet area */
-.pet-area {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 16px 0 8px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-.pet-hint {
-  text-align: center;
-  font-size: 10px;
-  color: var(--muted);
-  padding-bottom: 8px;
-  flex-shrink: 0;
+  overflow: hidden;
+  user-select: none;
 }
 
-/* messages */
-.msg-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 16px;
-  display: flex;
+/* ── SETUP ──────────────────────────── */
+#setup {
+  width: 100%; max-width: 320px;
+  padding: 40px 24px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.s-title { color: var(--green); font-size: 22px; font-weight: bold; letter-spacing: 3px; text-align: center; }
+.s-sub   { color: #444; font-size: 11px; text-align: center; line-height: 1.8; }
+.s-label { color: var(--green); font-size: 10px; }
+.s-input {
+  width: 100%; background: #111; border: 1px solid var(--green);
+  color: var(--green); font-family: 'Courier New', monospace;
+  font-size: 14px; padding: 10px 12px; outline: none;
+}
+.s-input::placeholder { color: #444; }
+.s-btn {
+  width: 100%; background: var(--green); border: none; color: #000;
+  font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;
+  padding: 12px; cursor: pointer; letter-spacing: 2px; margin-top: 4px;
+}
+.s-err { color: var(--red); font-size: 10px; text-align: center; }
+
+/* ── MAIN ───────────────────────────── */
+#main { display: none; flex-direction: column; align-items: center; gap: 12px; }
+
+.hint {
+  color: #333; font-size: 10px; text-align: center;
+  letter-spacing: 1px; height: 16px;
+}
+.hint.blink { color: var(--green); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── MESSAGE OVERLAY ────────────────── */
+#overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
 }
-.msg-row { display: flex; }
-.msg-row.mine  { justify-content: flex-end; }
-.msg-row.theirs{ justify-content: flex-start; }
-.bubble {
-  max-width: 75%;
-  padding: 8px 12px;
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: break-all;
-  border: 1px solid var(--green);
-  background: var(--dim);
-  color: var(--green);
-}
-.msg-row.mine .bubble   { border-color: #333; color: #aaa; background: var(--dim); }
-.msg-time { font-size: 9px; color: var(--muted); margin-top: 3px; }
-.msg-row.mine  .msg-time { text-align: right; }
+#overlay.open { display: flex; }
 
-/* input bar */
-.input-bar {
-  display: flex;
+.msg-card {
+  width: 100%; max-width: 320px;
+  background: var(--bg);
+  border: 1px solid var(--green);
+  display: flex; flex-direction: column;
   gap: 0;
-  border-top: 1px solid #1a1a1a;
-  flex-shrink: 0;
-  padding: 8px;
-  gap: 8px;
 }
-.msg-input {
-  flex: 1;
-  background: var(--dim);
-  border: 1px solid #333;
-  color: var(--green);
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  padding: 10px 12px;
-  outline: none;
-  resize: none;
-  height: 44px;
-  max-height: 120px;
-  border-radius: 0;
-}
-.msg-input:focus { border-color: var(--green); }
-.msg-input::placeholder { color: var(--muted); }
-.char-wrap { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; }
-.char-count { font-size: 9px; color: var(--muted); white-space: nowrap; }
-.char-count.warn { color: var(--red); }
-.send-btn {
+.msg-card-header {
   background: var(--green);
-  border: none;
   color: #000;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 0 16px;
-  cursor: pointer;
-  letter-spacing: 1px;
-  flex-shrink: 0;
+  font-size: 10px; font-weight: bold;
+  padding: 7px 12px;
+  letter-spacing: 2px;
+  display: flex; justify-content: space-between;
 }
-.send-btn:disabled { background: #333; color: #555; cursor: default; }
-
-/* ── TOAST ─────────────────────────── */
-#toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--mid);
-  border: 1px solid var(--green);
+.msg-card-body {
+  padding: 16px;
   color: var(--green);
-  font-size: 12px;
-  padding: 8px 16px;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 99;
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: 80px;
+  border-bottom: 1px solid #1a1a1a;
+}
+.msg-card-reply {
+  padding: 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.reply-input {
+  width: 100%; background: #111; border: 1px solid #333;
+  color: var(--green); font-family: 'Courier New', monospace;
+  font-size: 13px; padding: 8px 10px; outline: none; resize: none; height: 52px;
+}
+.reply-input:focus { border-color: var(--green); }
+.reply-input::placeholder { color: #444; }
+.reply-row {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.char-c { font-size: 9px; color: #444; }
+.char-c.warn { color: var(--red); }
+.reply-btns { display: flex; gap: 6px; }
+.btn-close {
+  background: transparent; border: 1px solid #333; color: #555;
+  font-family: 'Courier New', monospace; font-size: 10px; padding: 5px 10px; cursor: pointer;
+}
+.btn-send {
+  background: var(--green); border: none; color: #000;
+  font-family: 'Courier New', monospace; font-size: 10px; font-weight: bold;
+  padding: 5px 14px; cursor: pointer; letter-spacing: 1px;
+}
+.btn-send:disabled { background: #333; color: #555; cursor: default; }
+
+/* ── TOAST ──────────────────────────── */
+#toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+  background: var(--mid); border: 1px solid var(--green); color: var(--green);
+  font-size: 11px; padding: 7px 16px; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none; white-space: nowrap; z-index: 200;
 }
 #toast.show { opacity: 1; }
 </style>
@@ -191,38 +131,39 @@ body {
 
 <!-- SETUP -->
 <div id="setup">
-  <div class="setup-title">PET-MSG</div>
-  <div class="setup-sub">삐삐 감성 E2E 암호화 메신저<br>두 기기에 동일한 키를 입력하세요</div>
-  <hr class="divider">
-  <div class="setup-label">▸ 채널 ID</div>
-  <input class="setup-input" id="inp-channel" placeholder="ex) lab42-secret" autocomplete="off" spellcheck="false">
-  <div class="setup-label">▸ 비밀 키 (PSK, 8자 이상)</div>
-  <input class="setup-input" id="inp-psk" type="text" placeholder="공유된 비밀 키 입력" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-  <div class="setup-error" id="setup-err"></div>
-  <button class="setup-btn" id="setup-btn">접속 →</button>
+  <div class="s-title">PET-MSG</div>
+  <div class="s-sub">삐삐 감성 E2E 암호화 메신저<br>두 기기에 동일한 키를 입력하세요</div>
+  <div class="s-label">▸ 채널 ID</div>
+  <input class="s-input" id="inp-ch" placeholder="ex) lab42-secret" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+  <div class="s-label">▸ 비밀 키 (8자 이상)</div>
+  <input class="s-input" id="inp-psk" placeholder="공유된 비밀 키" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+  <div class="s-err" id="s-err"></div>
+  <button class="s-btn" id="s-btn">접속 →</button>
 </div>
 
 <!-- MAIN -->
 <div id="main">
-  <div class="top-bar">
-    <div class="top-title">PET-MSG</div>
-    <div class="top-status" id="status-txt" onclick="toggleDebug()" style="cursor:pointer">● 연결 중...</div>
-    <div class="top-reset" id="reset-btn">초기화</div>
-  </div>
+  <canvas id="pet" width="160" height="200" style="cursor:pointer"></canvas>
+  <div class="hint" id="hint">· · ·</div>
+</div>
 
-  <div class="pet-area" id="pet-area">
-    <canvas id="pet" width="120" height="160"></canvas>
-  </div>
-  <div class="pet-hint">탭해서 빠른 전송</div>
-
-  <div id="debug-panel" style="display:none;padding:8px 12px;font-size:9px;color:#555;border-bottom:1px solid #1a1a1a;line-height:1.8;word-break:break-all"></div>
-  <div class="msg-list" id="msg-list"></div>
-
-  <div class="input-bar">
-    <textarea class="msg-input" id="msg-input" placeholder="메시지 입력... (최대 80자)" maxlength="80" rows="1"></textarea>
-    <div class="char-wrap">
-      <span class="char-count" id="char-count">0/80</span>
-      <button class="send-btn" id="send-btn" disabled>SEND</button>
+<!-- MESSAGE OVERLAY -->
+<div id="overlay">
+  <div class="msg-card">
+    <div class="msg-card-header">
+      <span>수신 메시지</span>
+      <span id="msg-time"></span>
+    </div>
+    <div class="msg-card-body" id="msg-body"></div>
+    <div class="msg-card-reply">
+      <textarea class="reply-input" id="reply-input" placeholder="답장 입력... (최대 80자)" maxlength="80"></textarea>
+      <div class="reply-row">
+        <span class="char-c" id="char-c">0/80</span>
+        <div class="reply-btns">
+          <button class="btn-close" id="btn-close">닫기</button>
+          <button class="btn-send" id="btn-reply" disabled>SEND</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -230,11 +171,9 @@ body {
 <div id="toast"></div>
 
 <script>
-// ─── CONFIG STORE ──────────────────────────────────────────
-const STORE_KEY = 'petmsg_v1';
-function loadCfg() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch { return null; }
-}
+// ─── CONFIG ────────────────────────────────────────────────
+const STORE_KEY = 'petmsg_v2';
+function loadCfg() { try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch { return null; } }
 function saveCfg(c) { localStorage.setItem(STORE_KEY, JSON.stringify(c)); }
 function nanoid(n=12) {
   return Array.from(crypto.getRandomValues(new Uint8Array(n)))
@@ -252,35 +191,32 @@ async function deriveKey(psk) {
 }
 function toB64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
 function fromB64(b64) { return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
-
 async function encryptMsg(text, psk) {
   const key = await deriveKey(psk);
   const iv  = crypto.getRandomValues(new Uint8Array(12));
   const buf = await crypto.subtle.encrypt({name:'AES-GCM',iv}, key, new TextEncoder().encode(text));
-  const out = new Uint8Array(12 + buf.byteLength);
-  out.set(iv); out.set(new Uint8Array(buf), 12);
+  const out = new Uint8Array(12+buf.byteLength);
+  out.set(iv); out.set(new Uint8Array(buf),12);
   return toB64(out);
 }
 async function decryptMsg(b64, psk) {
   const key  = await deriveKey(psk);
   const data = fromB64(b64);
-  const buf  = await crypto.subtle.decrypt({name:'AES-GCM', iv:data.slice(0,12)}, key, data.slice(12));
+  const buf  = await crypto.subtle.decrypt({name:'AES-GCM',iv:data.slice(0,12)}, key, data.slice(12));
   return new TextDecoder().decode(buf);
 }
 
-// ─── FIREBASE RELAY ────────────────────────────────────────
+// ─── RELAY ─────────────────────────────────────────────────
 const DB = 'https://bbibi-8aebd-default-rtdb.asia-southeast1.firebasedatabase.app';
-
 async function relayPost(channelId, fromId, cipher) {
   const res = await fetch(`${DB}/${channelId}/messages.json`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ from:fromId, cipher, ts:Date.now() })
   });
   if (!res.ok) throw new Error('전송 실패');
 }
 async function relayPoll(channelId, since) {
-  const res = await fetch(`${DB}/${channelId}/messages.json?orderBy="$key"&limitToLast=50`);
+  const res = await fetch(`${DB}/${channelId}/messages.json?orderBy="$key"&limitToLast=10`);
   if (!res.ok) return [];
   const data = await res.json();
   if (!data) return [];
@@ -288,186 +224,171 @@ async function relayPoll(channelId, since) {
 }
 
 // ─── PET CANVAS ────────────────────────────────────────────
-const STATES = ['idle','idle','idle','typing','thinking','sleeping','happy'];
-let petState = 'idle', petFrame = 0, petBlink = true, petBlinkT = 0, petBlinkCD = 90;
+let petState='idle', petFrame=0, petBlink=true, petBlinkT=0, petBlinkCD=90;
+const STATES=['idle','idle','idle','thinking','sleeping'];
 
 function drawPet(canvas, state) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
   const G='#00ff88', DIM='#002211', MID='#1a1a1a', DARK='#0d0d0d';
-  const RED='#ff3355', BLUE='#33aaff', YEL='#ffdd00', BG='#0a0a0a';
-  const f = petFrame;
+  const YEL='#ffdd00', f=petFrame;
 
   petBlinkT++;
-  if (petBlinkT >= petBlinkCD) {
-    petBlink = false;
-    if (petBlinkT >= petBlinkCD + 4) { petBlink=true; petBlinkT=0; petBlinkCD=70+Math.floor(Math.random()*80); }
+  if(petBlinkT>=petBlinkCD){
+    petBlink=false;
+    if(petBlinkT>=petBlinkCD+4){petBlink=true;petBlinkT=0;petBlinkCD=70+Math.floor(Math.random()*80);}
   }
 
   ctx.clearRect(0,0,W,H);
-  const bob = Math.sin(f*0.1)*2, by=Math.round(bob), cx=W/2, base=128;
+  const bob=Math.sin(f*0.1)*2.5, by=Math.round(bob), cx=W/2, base=155;
 
   // scanlines
   ctx.strokeStyle=DIM; ctx.lineWidth=1;
   for(let y=0;y<H;y+=4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-  // border
+  // border + top bar
   ctx.strokeStyle=G; ctx.lineWidth=1; ctx.strokeRect(1,1,W-2,H-2);
-
-  // top bar
-  ctx.fillStyle=G; ctx.fillRect(2,2,W-4,12);
-  ctx.fillStyle=BG; ctx.font="bold 5px 'Courier New'"; ctx.textAlign='center';
-  ctx.fillText(`PET-MSG [${state.toUpperCase().slice(0,5).padEnd(5)}]`,cx,10);
+  ctx.fillStyle=G; ctx.fillRect(2,2,W-4,13);
+  ctx.fillStyle='#000'; ctx.font="bold 6px 'Courier New'"; ctx.textAlign='center';
+  ctx.fillText(`PET-MSG  [${state.toUpperCase().slice(0,5).padEnd(5)}]`,cx,11);
 
   // antenna
-  const hy=base-52+by;
+  const hy=base-62+by;
   ctx.strokeStyle=G; ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(cx,hy);ctx.lineTo(cx,hy-13);ctx.stroke();
-  ctx.fillStyle=state==='happy'?(f%10<5?YEL:G):state==='glitch'?(f%4<2?RED:BLUE):DARK;
-  ctx.beginPath();ctx.arc(cx,hy-17,4,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.moveTo(cx,hy);ctx.lineTo(cx,hy-14);ctx.stroke();
+  ctx.fillStyle=state==='mail'?YEL:DARK;
+  ctx.beginPath();ctx.arc(cx,hy-18,4.5,0,Math.PI*2);ctx.fill();
   ctx.strokeStyle=G;ctx.stroke();
 
   // head
-  const hx=cx-18;
-  ctx.fillStyle=MID; ctx.strokeStyle=(state==='glitch'&&f%6<2)?RED:G; ctx.lineWidth=2;
-  ctx.fillRect(hx,hy,36,30); ctx.strokeRect(hx,hy,36,30);
+  ctx.fillStyle=MID; ctx.strokeStyle=G; ctx.lineWidth=2;
+  ctx.fillRect(cx-20,hy,40,32); ctx.strokeRect(cx-20,hy,40,32);
 
   // eyes
   const ey=hy+14;
   if(state==='sleeping'||!petBlink){
     ctx.strokeStyle=G;ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(cx-10,ey);ctx.lineTo(cx-4,ey);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(cx+4,ey);ctx.lineTo(cx+10,ey);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-12,ey);ctx.lineTo(cx-5,ey);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+5,ey);ctx.lineTo(cx+12,ey);ctx.stroke();
   } else {
-    const ec=state==='happy'?YEL:(state==='glitch'&&f%4<2)?RED:(state==='glitch'?BLUE:G);
+    const ec=state==='mail'?YEL:G;
     ctx.fillStyle=DARK;ctx.strokeStyle=ec;ctx.lineWidth=2;
-    ctx.fillRect(cx-11,ey-4,8,8);ctx.strokeRect(cx-11,ey-4,8,8);
-    ctx.fillRect(cx+3,ey-4,8,8);ctx.strokeRect(cx+3,ey-4,8,8);
-    const sh=state==='thinking'?Math.round(Math.sin(f*0.18)*2):0;
+    ctx.fillRect(cx-13,ey-4,9,9);ctx.strokeRect(cx-13,ey-4,9,9);
+    ctx.fillRect(cx+4,ey-4,9,9);ctx.strokeRect(cx+4,ey-4,9,9);
     ctx.fillStyle=ec;
-    ctx.fillRect(cx-9+sh-1,ey-2,3,3);ctx.fillRect(cx+6+sh-1,ey-2,3,3);
+    ctx.fillRect(cx-10-1,ey-1,3,3);ctx.fillRect(cx+7-1,ey-1,3,3);
   }
 
   // mouth
-  const my=hy+24;
+  const my=hy+26;
   ctx.strokeStyle=G;ctx.lineWidth=2;
-  if(state==='happy'){ctx.beginPath();ctx.arc(cx,my-1,7,0.2,Math.PI-0.2);ctx.stroke();}
-  else if(state==='sleeping'){ctx.beginPath();ctx.arc(cx,my+2,5,Math.PI,2*Math.PI);ctx.stroke();}
+  if(state==='sleeping'){ctx.beginPath();ctx.arc(cx,my+2,6,Math.PI,2*Math.PI);ctx.stroke();}
+  else if(state==='mail'){ctx.beginPath();ctx.arc(cx,my-1,8,0.3,Math.PI-0.3);ctx.stroke();}
   else if(state==='thinking'){ctx.fillStyle=G;ctx.beginPath();ctx.arc(cx,my,2.5,0,Math.PI*2);ctx.fill();}
-  else if(state==='glitch'){ctx.strokeStyle=RED;ctx.beginPath();ctx.moveTo(cx-8,my);for(let i=1;i<=4;i++)ctx.lineTo(cx-8+i*4,my+(f%3===0?Math.random()*5-2.5:0));ctx.stroke();}
   else{ctx.beginPath();ctx.moveTo(cx-7,my);ctx.lineTo(cx+7,my);ctx.stroke();}
 
   // body
-  const bx=cx-16, bodyY=hy+28;
+  const bx=cx-18, bodyY=hy+30;
   ctx.fillStyle=MID;ctx.strokeStyle=G;ctx.lineWidth=2;
-  ctx.fillRect(bx,bodyY,32,34);ctx.strokeRect(bx,bodyY,32,34);
+  ctx.fillRect(bx,bodyY,36,38);ctx.strokeRect(bx,bodyY,36,38);
 
   // CPU
   ctx.fillStyle=DARK;ctx.strokeStyle=G;ctx.lineWidth=1;
-  ctx.fillRect(bx+16,bodyY+5,11,7);ctx.strokeRect(bx+16,bodyY+5,11,7);
+  ctx.fillRect(bx+18,bodyY+5,12,8);ctx.strokeRect(bx+18,bodyY+5,12,8);
   ctx.fillStyle=G;ctx.font="bold 4px 'Courier New'";ctx.textAlign='center';
-  ctx.fillText('CPU',bx+22,bodyY+10);
+  ctx.fillText('CPU',bx+24,bodyY+11);
 
   // LEDs
-  [[G,state==='typing'&&f%6<3],[RED,state==='glitch'&&f%3<1],[BLUE,state==='sleeping'&&f%20<10]].forEach(([col,bk],i)=>{
-    const lx=bx+3+i*7, ly=bodyY+24;
+  [[G,state==='mail'&&f%4<2],['#3388ff',state==='sleeping'&&f%20<10]].forEach(([col,bk],i)=>{
+    const lx=bx+4+i*8, ly=bodyY+26;
     ctx.fillStyle=bk?DARK:col;ctx.strokeStyle=col;ctx.lineWidth=1;
     ctx.beginPath();ctx.arc(lx+2,ly+2,2.5,0,Math.PI*2);ctx.fill();ctx.stroke();
   });
 
   // arms
   const ay=bodyY+10;
-  ctx.strokeStyle=G;ctx.lineWidth=2.5;
-  if(state==='typing'){
-    const lo=f%8<4?8:4,ro=f%8<4?4:8;
-    ctx.beginPath();ctx.moveTo(bx,ay);ctx.lineTo(bx-11,ay+lo);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(bx+32,ay);ctx.lineTo(bx+43,ay+ro);ctx.stroke();
-  } else if(state==='happy'){
-    ctx.beginPath();ctx.moveTo(bx,ay);ctx.lineTo(bx-11,ay-8);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(bx+32,ay);ctx.lineTo(bx+43,ay-8);ctx.stroke();
-    ctx.fillStyle=YEL;ctx.beginPath();ctx.arc(bx-11,ay-11,3,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(bx+43,ay-11,3,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=G;ctx.lineWidth=3;
+  if(state==='mail'){
+    // left arm normal down
+    ctx.beginPath();ctx.moveTo(bx,ay);ctx.lineTo(bx-12,ay+14);ctx.stroke();
+    // right arm raised holding letter
+    ctx.beginPath();ctx.moveTo(bx+36,ay);ctx.lineTo(bx+50,ay-14);ctx.stroke();
+    // envelope
+    const ex=bx+49, ey2=ay-26;
+    ctx.fillStyle=YEL;ctx.strokeStyle=YEL;ctx.lineWidth=1;
+    ctx.fillRect(ex-9,ey2-6,18,12);
+    ctx.strokeStyle=DARK;
+    ctx.beginPath();ctx.moveTo(ex-9,ey2-6);ctx.lineTo(ex,ey2+1);ctx.lineTo(ex+9,ey2-6);ctx.stroke();
+    ctx.strokeStyle=YEL;ctx.lineWidth=1;ctx.strokeRect(ex-9,ey2-6,18,12);
   } else if(state==='sleeping'){
-    ctx.beginPath();ctx.moveTo(bx,ay+6);ctx.lineTo(bx-10,ay+16);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(bx+32,ay+6);ctx.lineTo(bx+42,ay+16);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx,ay+6);ctx.lineTo(bx-10,ay+18);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx+36,ay+6);ctx.lineTo(bx+46,ay+18);ctx.stroke();
   } else {
-    ctx.beginPath();ctx.moveTo(bx,ay);ctx.lineTo(bx-11,ay+11);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(bx+32,ay);ctx.lineTo(bx+43,ay+11);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx,ay);ctx.lineTo(bx-12,ay+14);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx+36,ay);ctx.lineTo(bx+48,ay+14);ctx.stroke();
   }
 
   // legs
-  const legY=bodyY+34;
+  const legY=bodyY+38;
   ctx.fillStyle=MID;ctx.strokeStyle=G;ctx.lineWidth=2;
-  ctx.fillRect(cx-13,legY,8,11);ctx.strokeRect(cx-13,legY,8,11);
-  ctx.fillRect(cx+5,legY,8,11);ctx.strokeRect(cx+5,legY,8,11);
-  ctx.fillRect(cx-15,legY+8,11,8);ctx.strokeRect(cx-15,legY+8,11,8);
-  ctx.fillRect(cx+4,legY+8,11,8);ctx.strokeRect(cx+4,legY+8,11,8);
+  ctx.fillRect(cx-14,legY,8,12);ctx.strokeRect(cx-14,legY,8,12);
+  ctx.fillRect(cx+6,legY,8,12);ctx.strokeRect(cx+6,legY,8,12);
+  ctx.fillRect(cx-16,legY+9,12,8);ctx.strokeRect(cx-16,legY+9,12,8);
+  ctx.fillRect(cx+4,legY+9,12,8);ctx.strokeRect(cx+4,legY+9,12,8);
 
-  // zzz
+  // sleeping zzz
   if(state==='sleeping'){
     ctx.fillStyle=G;
     ['z','Z','Z'].forEach((c,i)=>{
       if((Math.floor(f/18)+i)%4<3){
         ctx.font=`bold ${6+i*2}px 'Courier New'`;ctx.textAlign='left';
-        ctx.fillText(c,cx+16+i*7,hy-3-i*7+by);
+        ctx.fillText(c,cx+18+i*8,hy-2-i*8+by);
       }
     });
   }
 
-  // glitch tear
-  if(state==='glitch'&&f%10<3){
-    ctx.strokeStyle=RED;ctx.lineWidth=1;
-    ctx.beginPath();const ty=15+Math.floor(Math.random()*(H-30));
-    ctx.moveTo(0,ty);ctx.lineTo(W,ty);ctx.stroke();
-  }
-
   // bottom bar
-  ctx.fillStyle=DIM;ctx.fillRect(2,H-11,W-4,9);
+  ctx.fillStyle=DIM;ctx.fillRect(2,H-12,W-4,10);
   ctx.fillStyle=G;ctx.font="bold 5px 'Courier New'";ctx.textAlign='center';
-  ctx.fillText(`TICK:${String(f).padStart(4,'0')} MEM:OK`,cx,H-4);
+  ctx.fillText(`TICK:${String(f).padStart(5,'0')}  MEM:OK`,cx,H-4);
 }
 
 // ─── APP STATE ─────────────────────────────────────────────
-let cfg = null;
-let localMsgs = []; // { text, mine, ts }
+let cfg=null, pendingMsg=null;
 
-// ─── UI HELPERS ────────────────────────────────────────────
-function toast(msg, dur=2500) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), dur);
+function toast(msg,dur=2500){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),dur);
 }
-
-function fmtTime(ts) {
-  const d = new Date(ts);
+function fmtTime(ts){
+  const d=new Date(ts);
   return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
 }
 
-function renderMsgs() {
-  const list = document.getElementById('msg-list');
-  list.innerHTML = '';
-  localMsgs.forEach(m => {
-    const row = document.createElement('div');
-    row.className = `msg-row ${m.mine?'mine':'theirs'}`;
-    row.innerHTML = `
-      <div>
-        <div class="bubble">${escHtml(m.text)}</div>
-        <div class="msg-time">${fmtTime(m.ts)}</div>
-      </div>`;
-    list.appendChild(row);
-  });
-  list.scrollTop = list.scrollHeight;
+// ─── OVERLAY ───────────────────────────────────────────────
+function openOverlay() {
+  if (!pendingMsg) return;
+  document.getElementById('msg-body').textContent = pendingMsg.text;
+  document.getElementById('msg-time').textContent  = fmtTime(pendingMsg.ts);
+  document.getElementById('reply-input').value = '';
+  document.getElementById('char-c').textContent = '0/80';
+  document.getElementById('btn-reply').disabled = true;
+  document.getElementById('overlay').classList.add('open');
 }
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('open');
+  pendingMsg = null;
+  petState = 'idle';
+  document.getElementById('hint').textContent = '· · ·';
+  document.getElementById('hint').classList.remove('blink');
 }
 
 // ─── SETUP ─────────────────────────────────────────────────
-document.getElementById('setup-btn').onclick = () => {
-  const chan = document.getElementById('inp-channel').value.trim();
+document.getElementById('s-btn').onclick = () => {
+  const chan = document.getElementById('inp-ch').value.trim();
   const psk  = document.getElementById('inp-psk').value.trim();
-  const err  = document.getElementById('setup-err');
+  const err  = document.getElementById('s-err');
   if (!chan)        { err.textContent='채널 ID를 입력하세요'; return; }
   if (psk.length<8) { err.textContent='비밀 키는 8자 이상이어야 해요'; return; }
   err.textContent='';
@@ -476,137 +397,78 @@ document.getElementById('setup-btn').onclick = () => {
   startMain();
 };
 
-// ─── MAIN ──────────────────────────────────────────────────
-function startMain() {
-  document.getElementById('setup').style.display = 'none';
-  const main = document.getElementById('main');
-  main.style.display = 'flex';
+// ─── REPLY ─────────────────────────────────────────────────
+document.getElementById('reply-input').addEventListener('input', e=>{
+  const n=e.target.value.length;
+  document.getElementById('char-c').textContent=`${n}/80`;
+  document.getElementById('char-c').className='char-c'+(n>64?' warn':'');
+  document.getElementById('btn-reply').disabled=n===0;
+});
+document.getElementById('reply-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doReply();}
+});
+document.getElementById('btn-reply').onclick = doReply;
+document.getElementById('btn-close').onclick  = closeOverlay;
 
-  // pet animation loop
-  const canvas = document.getElementById('pet');
-  let stateTimer = 0;
-  const FPS = 30;
-  setInterval(()=>{
-    petFrame++;
-    stateTimer++;
-    if (stateTimer > (90 + Math.random()*120|0)) {
-      petState = STATES[Math.floor(Math.random()*STATES.length)];
-      stateTimer = 0;
-    }
-    drawPet(canvas, petState);
-  }, 1000/FPS);
-
-  // pet click → focus input
-  document.getElementById('pet-area').onclick = () => {
-    document.getElementById('msg-input').focus();
-    petState = 'typing';
-  };
-
-  // char counter
-  const input = document.getElementById('msg-input');
-  const cc    = document.getElementById('char-count');
-  const sendBtn = document.getElementById('send-btn');
-  input.addEventListener('input', ()=>{
-    const n = input.value.length;
-    cc.textContent = `${n}/80`;
-    cc.className = 'char-count' + (n>64?' warn':'');
-    sendBtn.disabled = n===0;
-  });
-
-  // send on Enter (desktop)
-  input.addEventListener('keydown', e=>{
-    if (e.key==='Enter' && !e.shiftKey && !e.ctrlKey) {
-      e.preventDefault(); doSend();
-    }
-  });
-  sendBtn.onclick = doSend;
-
-  // reset
-  document.getElementById('reset-btn').onclick = ()=>{
-    if (confirm('설정을 초기화할까요?')) {
-      localStorage.removeItem(STORE_KEY);
-      location.reload();
-    }
-  };
-
-  // start polling
-  pollLoop();
-}
-
-async function doSend() {
-  const input = document.getElementById('msg-input');
-  const text  = input.value.trim();
-  if (!text || !cfg) return;
-  input.value = '';
-  document.getElementById('char-count').textContent = '0/80';
-  document.getElementById('send-btn').disabled = true;
-
-  const ts = Date.now();
-  localMsgs.push({ text, mine:true, ts });
-  renderMsgs();
-  petState = 'happy';
-
+async function doReply() {
+  const text = document.getElementById('reply-input').value.trim();
+  if (!text||!cfg) return;
+  closeOverlay();
   try {
     const cipher = await encryptMsg(text, cfg.psk);
     await relayPost(cfg.channelId, cfg.myId, cipher);
-    document.getElementById('status-txt').textContent = '● 전송됨 ✓';
-  } catch(e) {
-    toast('전송 실패 ✗');
-    document.getElementById('status-txt').textContent = '● 오프라인';
-  }
-  setTimeout(()=>{ document.getElementById('status-txt').textContent='● 연결됨'; }, 3000);
+    toast('전송됨 ✓');
+    petState='idle';
+  } catch { toast('전송 실패 ✗'); }
 }
 
-let debugLog = [];
-function updateDebug(msg) {
-  debugLog.push(msg);
-  if (debugLog.length > 10) debugLog.shift();
-  const el = document.getElementById('debug-panel');
-  if (el && el.style.display !== 'none') el.innerHTML = debugLog.join('<br>');
-}
-function toggleDebug() {
-  const el = document.getElementById('debug-panel');
-  if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-  if (el.style.display === 'block') el.innerHTML = debugLog.join('<br>');
+// ─── MAIN ──────────────────────────────────────────────────
+function startMain() {
+  document.getElementById('setup').style.display='none';
+  document.getElementById('main').style.display='flex';
+
+  const canvas=document.getElementById('pet');
+
+  // pet click
+  canvas.onclick = () => {
+    if (pendingMsg) openOverlay();
+  };
+
+  // pet animation
+  let stateT=0;
+  setInterval(()=>{
+    petFrame++;
+    stateT++;
+    if(petState!=='mail' && stateT>(90+Math.random()*120|0)){
+      petState=STATES[Math.floor(Math.random()*STATES.length)];
+      stateT=0;
+    }
+    drawPet(canvas, petState);
+  }, 1000/30);
+
+  pollLoop();
 }
 
+// ─── POLL ──────────────────────────────────────────────────
 async function pollLoop() {
-  const statusEl = document.getElementById('status-txt');
-  updateDebug(`▸ 시작 ch=${cfg.channelId} myId=${cfg.myId}`);
   while (true) {
-    try {
-      const msgs = await relayPoll(cfg.channelId, cfg.lastSeen||0);
-      updateDebug(`poll: ${msgs.length}개 (since=${cfg.lastSeen||0})`);
-      if (msgs.length > 0) {
-        statusEl.textContent = '● 연결됨';
+    if (cfg) {
+      try {
+        const msgs = await relayPoll(cfg.channelId, cfg.lastSeen||0);
         for (const m of msgs) {
           if (m.from !== cfg.myId) {
             try {
               const text = await decryptMsg(m.cipher, cfg.psk);
-              localMsgs.push({ text, mine:false, ts:m.ts });
-              petState = 'happy';
-              toast('새 메시지 도착!');
-              updateDebug(`✓ 수신: "${text.slice(0,20)}"`);
-            } catch(e) {
-              localMsgs.push({ text:'[복호화 실패]', mine:false, ts:m.ts });
-              updateDebug(`✗ 복호화 실패 from=${m.from}`);
-            }
-          } else {
-            updateDebug(`→ 내 메시지 skip (from=${m.from.slice(0,6)})`);
+              pendingMsg = { text, ts: m.ts };
+              petState = 'mail';
+              const hint = document.getElementById('hint');
+              hint.textContent = '▸ 탭해서 확인';
+              hint.classList.add('blink');
+            } catch { /* 복호화 실패 무시 */ }
           }
-          if (m.ts > (cfg.lastSeen||0)) {
-            cfg.lastSeen = m.ts;
-            saveCfg(cfg);
-          }
+          if (m.ts > (cfg.lastSeen||0)) { cfg.lastSeen=m.ts; saveCfg(cfg); }
         }
-        renderMsgs();
-      } else {
-        statusEl.textContent = '● 연결됨';
-      }
-    } catch(e) {
-      statusEl.textContent = '● 오프라인';
-      updateDebug(`✗ 에러: ${e.message}`);
+      } catch { /* 오프라인 무시 */ }
     }
     await new Promise(r=>setTimeout(r,3000));
   }
@@ -614,7 +476,7 @@ async function pollLoop() {
 
 // ─── INIT ──────────────────────────────────────────────────
 const saved = loadCfg();
-if (saved) { cfg = saved; startMain(); }
+if (saved) { cfg=saved; startMain(); }
 </script>
 </body>
 </html>
