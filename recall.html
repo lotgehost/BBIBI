@@ -39,17 +39,16 @@
 /* ── HEADER ── */
 .hdr {
   background: var(--green);
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 5px 10px; flex-shrink: 0;
+  display: flex; align-items: center;
+  padding: 5px 10px; flex-shrink: 0; gap: 0;
 }
-.hdr-title { color: #000; font-size: 10px; font-weight: bold; letter-spacing: 4px; }
-.hdr-right { display: flex; align-items: center; gap: 10px; }
-.hdr-count { color: #000; font-size: 9px; letter-spacing: 1px; }
 .hdr-btn {
   background: none; border: none; color: #000;
   font-size: 11px; cursor: pointer; font-family: inherit; padding: 0; opacity: 0.7;
+  flex-shrink: 0;
 }
 .hdr-btn:hover { opacity: 1; }
+.hdr-spacer { flex: 1; }
 
 /* ── DISPLAY (4/5) ── */
 .display {
@@ -78,9 +77,6 @@
 .note-meta { margin-top: 12px; font-size: 10px; color: var(--muted); letter-spacing: 1px; display: flex; gap: 12px; }
 .empty-msg { color: var(--muted); font-size: 11px; line-height: 2.4; letter-spacing: 1px; text-align: center; }
 .empty-msg span { color: var(--green); }
-
-/* ── PROGRESS BAR (hidden) ── */
-.pbar { display: none; }
 
 /* ── INPUT (1/5) ── */
 .input-row {
@@ -142,45 +138,40 @@
   <div class="list-overlay hidden" id="listOverlay">
     <div class="list-hdr">
       <span class="list-hdr-title">ALL NOTES</span>
-      <button class="list-close" onclick="closeList()">✕ 닫기</button>
+      <button class="list-close" id="listClose">← BACK</button>
     </div>
     <div class="list-body" id="listBody"></div>
   </div>
 
   <!-- ── HEADER ── -->
   <div class="hdr">
-    <span class="hdr-title">BBIBIP</span>
-    <div class="hdr-right">
-      <button class="hdr-btn" onclick="openList()" title="전체 보기">≡</button>
-      <span class="hdr-count" id="hdrCount">0 NOTES</span>
-    </div>
+    <button class="hdr-btn" id="listBtn">≡</button>
+    <span class="hdr-spacer"></span>
   </div>
 
   <!-- ── DISPLAY ── -->
   <div class="display">
     <div class="display-inner" id="displayInner"></div>
-    <div class="pbar"><div class="pbar-fill" id="pbarFill"></div></div>
   </div>
 
   <!-- ── INPUT ── -->
   <div class="input-row">
     <span class="prompt">&gt;</span>
     <input class="note-inp" id="noteInp" placeholder="인사이트 입력 · 출처 추가: 텍스트 // 출처명">
-    <button class="save-btn" onclick="saveNote()">저장</button>
+    <button class="save-btn" id="saveBtn">SAVE</button>
   </div>
 
   <div id="toast"></div>
 </div>
 
 <script>
-const FB  = 'https://bbibi-8aebd-default-rtdb.asia-southeast1.firebasedatabase.app';
-const KEY = 'bbibip';
+const FB   = 'https://bbibi-8aebd-default-rtdb.asia-southeast1.firebasedatabase.app';
+const KEY  = 'bbibip';
 const LKEY = 'bbibip_notes';
-const CYCLE = 3 * 60 * 60 * 1000; // 3시간
+const CYCLE = 3 * 60 * 60 * 1000;
 
 let notes = [], idx = 0, autoTmr = null;
 
-// ── INIT
 async function init() {
   const raw = localStorage.getItem(LKEY);
   notes = raw ? JSON.parse(raw) : [];
@@ -204,7 +195,6 @@ async function init() {
   });
 }
 
-// ── SAVE
 async function saveNote() {
   const inp = document.getElementById('noteInp');
   const raw = inp.value.trim();
@@ -217,23 +207,19 @@ async function saveNote() {
   try {
     await fetch(`${FB}/${KEY}/notes/${note.id}.json`, { method: 'PUT', body: JSON.stringify(note) });
   } catch(e) {}
-  document.getElementById('hdrCount').textContent = `${notes.length} NOTES`;
   toast('저장됨');
 }
 
 function persist() { localStorage.setItem(LKEY, JSON.stringify(notes)); }
 
-// ── RENDER
 function render() {
   const n = notes.length;
-  document.getElementById('hdrCount').textContent = `${n} NOTE${n !== 1 ? 'S' : ''}`;
   const inner = document.getElementById('displayInner');
   if (n === 0) {
     inner.innerHTML = `<div class="empty-msg">
       <span>BBIBIP</span><br><br>
       아직 기록이 없습니다.<br>
-      아래 입력창에 첫 인사이트를 남겨보세요.<br><br>
-      <span style="color:#1e1e1e">출처 추가: 텍스트 // 출처명</span>
+      아래 입력창에 첫 인사이트를 남겨보세요.
     </div>`;
     stopAuto(); return;
   }
@@ -258,11 +244,9 @@ function showNote(fade) {
   else doRender();
 }
 
-// ── AUTO-ADVANCE
 function startAuto() {
   stopAuto();
   if (notes.length <= 1) return;
-  startPbar();
   autoTmr = setTimeout(() => {
     let next;
     do { next = Math.floor(Math.random() * notes.length); }
@@ -270,19 +254,8 @@ function startAuto() {
     idx = next; showNote(true); startAuto();
   }, CYCLE);
 }
-function stopAuto() { if (autoTmr) { clearTimeout(autoTmr); autoTmr = null; } stopPbar(); }
-function startPbar() {
-  stopPbar();
-  const f = document.getElementById('pbarFill');
-  f.style.transition = 'none'; f.style.width = '0%'; f.offsetWidth;
-  f.style.transition = `width ${CYCLE}ms linear`; f.style.width = '100%';
-}
-function stopPbar() {
-  const f = document.getElementById('pbarFill');
-  f.style.transition = 'none'; f.style.width = '0%';
-}
+function stopAuto() { if (autoTmr) { clearTimeout(autoTmr); autoTmr = null; } }
 
-// ── LIST
 function openList() {
   const body = document.getElementById('listBody');
   if (!notes.length) {
@@ -290,8 +263,8 @@ function openList() {
   } else {
     const sorted = [...notes].sort((a, b) => b.ts - a.ts);
     body.innerHTML = sorted.map(n => `
-      <div class="list-item" onclick="jumpToNote('${n.id}')">
-        <button class="list-item-del" onclick="deleteNote(event,'${n.id}')">✕</button>
+      <div class="list-item" data-id="${n.id}">
+        <button class="list-item-del" data-del="${n.id}">✕</button>
         <div class="list-item-text">${esc(n.text)}</div>
         <div class="list-item-meta">${n.source ? esc(n.source) + '  ·  ' : ''}${fmtDate(n.ts)}</div>
       </div>`).join('');
@@ -304,16 +277,13 @@ function jumpToNote(id) {
   if (i !== -1) { idx = i; showNote(true); startAuto(); }
   closeList();
 }
-async function deleteNote(e, id) {
-  e.stopPropagation();
-  notes = notes.filter(n => n.id !== id);
-  persist();
-  try { await fetch(`${FB}/${KEY}/notes/${id}.json`, { method: 'DELETE' }); } catch(e) {}
+function deleteNote(id) {
+  notes = notes.filter(n => n.id !== id); persist();
   if (idx >= notes.length) idx = Math.max(0, notes.length - 1);
   render(); openList(); toast('삭제됨');
+  fetch(`${FB}/${KEY}/notes/${id}.json`, { method: 'DELETE' }).catch(() => {});
 }
 
-// ── UTILS
 function fmtDate(ts) { const d = new Date(ts); return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`; }
 function pad(n) { return String(n).padStart(2, '0'); }
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -322,6 +292,17 @@ function toast(msg) {
   t.textContent = msg; t.style.opacity = '1';
   setTimeout(() => t.style.opacity = '0', 1400);
 }
+
+// ── 이벤트
+document.getElementById('listBtn').addEventListener('click', openList);
+document.getElementById('listClose').addEventListener('click', closeList);
+document.getElementById('saveBtn').addEventListener('click', saveNote);
+document.getElementById('listBody').addEventListener('click', function(e) {
+  const delBtn = e.target.closest('[data-del]');
+  if (delBtn) { deleteNote(delBtn.dataset.del); return; }
+  const item = e.target.closest('[data-id]');
+  if (item) { jumpToNote(item.dataset.id); }
+});
 
 init();
 </script>
