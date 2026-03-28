@@ -79,10 +79,9 @@
 
 .note-text {
   color: var(--green); font-size: 14px; line-height: 1.9;
-  word-break: keep-all; overflow-wrap: break-word;
-  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+  word-break: keep-all; overflow-wrap: break-word; overflow: auto;
 }
-@media (max-width: 599px) { .note-text { font-size: 20px; line-height: 2; -webkit-line-clamp: 8; } }
+@media (max-width: 599px) { .note-text { font-size: 20px; line-height: 2; } }
 
 .note-meta { margin-top: 12px; font-size: 10px; color: var(--muted); letter-spacing: 1px; display: flex; gap: 12px; }
 @media (max-width: 599px) { .note-meta { font-size: 13px; margin-top: 20px; } }
