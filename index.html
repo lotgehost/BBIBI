@@ -197,7 +197,7 @@ body {
   <div class="setup-label">▸ 채널 ID</div>
   <input class="setup-input" id="inp-channel" placeholder="ex) lab42-secret" autocomplete="off" spellcheck="false">
   <div class="setup-label">▸ 비밀 키 (PSK, 8자 이상)</div>
-  <input class="setup-input" id="inp-psk" type="password" placeholder="공유된 비밀 키 입력">
+  <input class="setup-input" id="inp-psk" type="text" placeholder="공유된 비밀 키 입력" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
   <div class="setup-error" id="setup-err"></div>
   <button class="setup-btn" id="setup-btn">접속 →</button>
 </div>
@@ -206,7 +206,7 @@ body {
 <div id="main">
   <div class="top-bar">
     <div class="top-title">PET-MSG</div>
-    <div class="top-status" id="status-txt">● 연결 중...</div>
+    <div class="top-status" id="status-txt" onclick="toggleDebug()" style="cursor:pointer">● 연결 중...</div>
     <div class="top-reset" id="reset-btn">초기화</div>
   </div>
 
@@ -215,6 +215,7 @@ body {
   </div>
   <div class="pet-hint">탭해서 빠른 전송</div>
 
+  <div id="debug-panel" style="display:none;padding:8px 12px;font-size:9px;color:#555;border-bottom:1px solid #1a1a1a;line-height:1.8;word-break:break-all"></div>
   <div class="msg-list" id="msg-list"></div>
 
   <div class="input-bar">
@@ -556,11 +557,27 @@ async function doSend() {
   setTimeout(()=>{ document.getElementById('status-txt').textContent='● 연결됨'; }, 3000);
 }
 
+let debugLog = [];
+function updateDebug(msg) {
+  debugLog.push(msg);
+  if (debugLog.length > 10) debugLog.shift();
+  const el = document.getElementById('debug-panel');
+  if (el && el.style.display !== 'none') el.innerHTML = debugLog.join('<br>');
+}
+function toggleDebug() {
+  const el = document.getElementById('debug-panel');
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el.style.display === 'block') el.innerHTML = debugLog.join('<br>');
+}
+
 async function pollLoop() {
   const statusEl = document.getElementById('status-txt');
+  updateDebug(`▸ 시작 ch=${cfg.channelId} myId=${cfg.myId}`);
   while (true) {
     try {
       const msgs = await relayPoll(cfg.channelId, cfg.lastSeen||0);
+      updateDebug(`poll: ${msgs.length}개 (since=${cfg.lastSeen||0})`);
       if (msgs.length > 0) {
         statusEl.textContent = '● 연결됨';
         for (const m of msgs) {
@@ -570,9 +587,13 @@ async function pollLoop() {
               localMsgs.push({ text, mine:false, ts:m.ts });
               petState = 'happy';
               toast('새 메시지 도착!');
-            } catch {
+              updateDebug(`✓ 수신: "${text.slice(0,20)}"`);
+            } catch(e) {
               localMsgs.push({ text:'[복호화 실패]', mine:false, ts:m.ts });
+              updateDebug(`✗ 복호화 실패 from=${m.from}`);
             }
+          } else {
+            updateDebug(`→ 내 메시지 skip (from=${m.from.slice(0,6)})`);
           }
           if (m.ts > (cfg.lastSeen||0)) {
             cfg.lastSeen = m.ts;
@@ -583,8 +604,9 @@ async function pollLoop() {
       } else {
         statusEl.textContent = '● 연결됨';
       }
-    } catch {
+    } catch(e) {
       statusEl.textContent = '● 오프라인';
+      updateDebug(`✗ 에러: ${e.message}`);
     }
     await new Promise(r=>setTimeout(r,3000));
   }
