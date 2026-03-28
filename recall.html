@@ -376,10 +376,7 @@ function render() {
   if (idx < 0) idx = 0;
   if (idx >= n) idx = n - 1;
   showNote(); startAuto();
-  // nav: just prev/next, no dots
-  nav.innerHTML = `
-    <button class="nav-arr" onclick="navNote(-1)">◄</button>
-    <button class="nav-arr" onclick="navNote(1)">►</button>`;
+  nav.innerHTML = '';
 }
 
 function showNote(fade) {
@@ -396,13 +393,6 @@ function showNote(fade) {
   };
   if (fade) { inner.classList.add('fading'); setTimeout(doRender, 450); }
   else doRender();
-}
-
-// ── NAV
-function navNote(dir) {
-  if (!notes.length) return;
-  idx = ((idx + dir) + notes.length) % notes.length;
-  showNote(true); resetAuto();
 }
 
 // ── AUTO-ADVANCE (random)
