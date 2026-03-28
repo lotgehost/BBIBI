@@ -279,7 +279,7 @@ async function relayPost(channelId, fromId, cipher) {
   if (!res.ok) throw new Error('전송 실패');
 }
 async function relayPoll(channelId, since) {
-  const res = await fetch(`${DB}/${channelId}/messages.json?limitToLast=50`);
+  const res = await fetch(`${DB}/${channelId}/messages.json?orderBy="$key"&limitToLast=50`);
   if (!res.ok) return [];
   const data = await res.json();
   if (!data) return [];
