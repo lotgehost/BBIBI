@@ -16,54 +16,58 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
   user-select: none;
 }
 
-/* ── SETUP ──────────────────────────── */
-#setup {
-  width: 100%; max-width: 320px;
-  padding: 40px 24px;
-  display: flex; flex-direction: column; gap: 14px;
-}
-.s-title { color: var(--green); font-size: 22px; font-weight: bold; letter-spacing: 3px; text-align: center; }
-.s-sub   { color: #444; font-size: 11px; text-align: center; line-height: 1.8; }
-.s-label { color: var(--green); font-size: 10px; }
-.s-input {
-  width: 100%; background: #111; border: 1px solid var(--green);
-  color: var(--green); font-family: 'Courier New', monospace;
-  font-size: 14px; padding: 10px 12px; outline: none;
-}
-.s-input::placeholder { color: #444; }
-.s-btn {
-  width: 100%; background: var(--green); border: none; color: #000;
-  font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold;
-  padding: 12px; cursor: pointer; letter-spacing: 2px; margin-top: 4px;
-}
-.s-err { color: var(--red); font-size: 10px; text-align: center; }
-
-/* ── MAIN ───────────────────────────── */
-#main {
-  display: none;
-  flex-direction: column;
+/* ── 공통 레이아웃: 캐릭터 위 + 패널 아래 ── */
+#pet-area {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100dvh;
-  gap: 0;
+}
+#pet { display: block; cursor: pointer; }
+
+/* ── 하단 패널 (setup / hint 공용) ── */
+#bottom {
+  width: 100%;
+  flex-shrink: 0;
 }
 
-#pet {
-  display: block;
-  /* JS로 크기 설정됨 */
+/* ── SETUP 패널 ── */
+#setup-panel {
+  padding: 14px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #1a1a1a;
 }
+.s-row { display: flex; gap: 8px; }
+.s-input {
+  flex: 1; background: #111; border: 1px solid #333;
+  color: var(--green); font-family: 'Courier New', monospace;
+  font-size: 12px; padding: 8px 10px; outline: none;
+  min-width: 0;
+}
+.s-input:focus { border-color: var(--green); }
+.s-input::placeholder { color: #444; }
+.s-btn {
+  background: var(--green); border: none; color: #000;
+  font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold;
+  padding: 8px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.s-err { color: var(--red); font-size: 10px; text-align: center; height: 14px; }
 
-.hint {
-  color: #333; font-size: 12px; text-align: center;
-  margin-top: 10px;
-  letter-spacing: 1px; height: 16px;
+/* ── HINT 패널 ── */
+#hint-panel {
+  display: none;
+  padding: 14px 20px 20px;
+  text-align: center;
+  border-top: 1px solid #1a1a1a;
 }
+.hint { color: #333; font-size: 11px; letter-spacing: 1px; }
 .hint.blink { color: var(--green); animation: blink 1s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
@@ -143,22 +147,27 @@ body {
 </head>
 <body>
 
-<!-- SETUP -->
-<div id="setup">
-  <div class="s-title">PET-MSG</div>
-  <div class="s-sub">삐삐 감성 E2E 암호화 메신저<br>두 기기에 동일한 키를 입력하세요</div>
-  <div class="s-label">▸ 채널 ID</div>
-  <input class="s-input" id="inp-ch" placeholder="ex) lab42-secret" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
-  <div class="s-label">▸ 비밀 키 (8자 이상)</div>
-  <input class="s-input" id="inp-psk" placeholder="공유된 비밀 키" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
-  <div class="s-err" id="s-err"></div>
-  <button class="s-btn" id="s-btn">접속 →</button>
+<!-- 캐릭터 영역 (항상 표시) -->
+<div id="pet-area">
+  <canvas id="pet"></canvas>
 </div>
 
-<!-- MAIN -->
-<div id="main">
-  <canvas id="pet" style="cursor:pointer;display:block;"></canvas>
-  <div class="hint" id="hint">· · ·</div>
+<!-- 하단 패널 -->
+<div id="bottom">
+  <!-- 설정 패널 (미접속 시) -->
+  <div id="setup-panel">
+    <div class="s-row">
+      <input class="s-input" id="inp-ch"  placeholder="채널 ID" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+      <input class="s-input" id="inp-psk" placeholder="비밀 키 (8자+)" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+      <button class="s-btn" id="s-btn">→</button>
+    </div>
+    <div class="s-err" id="s-err"></div>
+  </div>
+
+  <!-- 힌트 패널 (접속 후) -->
+  <div id="hint-panel">
+    <div class="hint" id="hint">· · ·</div>
+  </div>
 </div>
 
 <!-- MESSAGE OVERLAY -->
@@ -446,41 +455,41 @@ async function doReply() {
 }
 
 // ─── MAIN ──────────────────────────────────────────────────
-function startMain() {
-  document.getElementById('setup').style.display='none';
-  document.getElementById('main').style.display='flex';
+const canvas = document.getElementById('pet');
 
-  const canvas=document.getElementById('pet');
+function resizeCanvas() {
+  const bottomH = document.getElementById('bottom').offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight - bottomH;
+  const scale = Math.min(vw / 160, vh / 200);
+  canvas.width  = Math.floor(160 * scale);
+  canvas.height = Math.floor(200 * scale);
+}
 
-  // 화면 채우도록 캔버스 크기 조정 (가로/세로 꽉 채우되 힌트 공간 확보)
-  function resizeCanvas() {
-    const hintH = 44;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight - hintH;
-    // 4:5 비율 유지하며 화면 꽉 채우기
-    const scale = Math.min(vw / 160, vh / 200);
-    canvas.width  = Math.floor(160 * scale);
-    canvas.height = Math.floor(200 * scale);
+// 캔버스 애니메이션 (항상 실행)
+let stateT = 0;
+setInterval(() => {
+  petFrame++;
+  stateT++;
+  if (petState !== 'mail' && stateT > (90 + Math.random()*120|0)) {
+    petState = STATES[Math.floor(Math.random()*STATES.length)];
+    stateT = 0;
   }
+  drawPet(canvas, petState);
+}, 1000/30);
+
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function startMain() {
+  document.getElementById('setup-panel').style.display='none';
+  document.getElementById('hint-panel').style.display='block';
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
 
   // pet click
   canvas.onclick = () => {
     if (pendingMsg) openOverlay();
   };
-
-  // pet animation
-  let stateT=0;
-  setInterval(()=>{
-    petFrame++;
-    stateT++;
-    if(petState!=='mail' && stateT>(90+Math.random()*120|0)){
-      petState=STATES[Math.floor(Math.random()*STATES.length)];
-      stateT=0;
-    }
-    drawPet(canvas, petState);
-  }, 1000/30);
 
   pollLoop();
 }
