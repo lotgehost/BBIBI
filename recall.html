@@ -228,6 +228,7 @@ async function saveNote() {
   if (sep !== -1) { text = raw.slice(0, sep).trim(); source = raw.slice(sep + 4).trim(); }
   const note = { id: Date.now().toString(), text, source, ts: Date.now() };
   notes.push(note); persist(); inp.value = '';
+  render();
   try {
     await fetch(`${FB}/${KEY}/notes/${note.id}.json`, { method: 'PUT', body: JSON.stringify(note) });
   } catch(e) {}
