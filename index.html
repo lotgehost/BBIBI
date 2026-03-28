@@ -243,9 +243,17 @@ const STATES=['idle','idle','idle','thinking','sleeping'];
 
 function drawPet(canvas, state) {
   const ctx=canvas.getContext('2d');
-  const W=canvas.width, H=canvas.height;
+  const W=160, H=200; // 논리 좌표계 고정
   const G='#00ff88', DIM='#002211', MID='#1a1a1a', DARK='#0d0d0d';
   const YEL='#ffdd00', f=petFrame;
+
+  // 실제 캔버스 크기에 맞게 스케일
+  const cw=canvas.width, ch=canvas.height;
+  const scale=Math.min(cw/W, ch/H);
+  ctx.clearRect(0,0,cw,ch);
+  ctx.save();
+  ctx.translate((cw-W*scale)/2, (ch-H*scale)/2);
+  ctx.scale(scale, scale);
 
   petBlinkT++;
   if(petBlinkT>=petBlinkCD){
@@ -253,7 +261,7 @@ function drawPet(canvas, state) {
     if(petBlinkT>=petBlinkCD+4){petBlink=true;petBlinkT=0;petBlinkCD=70+Math.floor(Math.random()*80);}
   }
 
-  ctx.clearRect(0,0,W,H);
+  // clearRect는 위에서 이미 처리됨
   const bob=Math.sin(f*0.1)*2.5, by=Math.round(bob), cx=W/2, base=155;
 
   // scanlines
@@ -365,6 +373,7 @@ function drawPet(canvas, state) {
   ctx.fillStyle=DIM;ctx.fillRect(2,H-12,W-4,10);
   ctx.fillStyle=G;ctx.font="bold 5px 'Courier New'";ctx.textAlign='center';
   ctx.fillText(`TICK:${String(f).padStart(5,'0')}  MEM:OK`,cx,H-4);
+  ctx.restore();
 }
 
 // ─── APP STATE ─────────────────────────────────────────────
