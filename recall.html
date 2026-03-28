@@ -217,8 +217,8 @@ async function saveNote() {
   try {
     await fetch(`${FB}/${KEY}/notes/${note.id}.json`, { method: 'PUT', body: JSON.stringify(note) });
   } catch(e) {}
-  idx = notes.length - 1;
-  render(); toast('저장됨');
+  document.getElementById('hdrCount').textContent = `${notes.length} NOTES`;
+  toast('저장됨');
 }
 
 function persist() { localStorage.setItem(LKEY, JSON.stringify(notes)); }
